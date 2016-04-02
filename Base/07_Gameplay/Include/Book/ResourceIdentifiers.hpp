@@ -19,6 +19,8 @@ namespace Textures
 		Bullet,
 		Missile,
 		Desert,
+		Sea,
+		Grass,
 		HealthRefill,
 		MissileRefill,
 		FireSpread,

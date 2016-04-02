@@ -1,5 +1,5 @@
-#ifndef BOOK_WORLD_HPP
-#define BOOK_WORLD_HPP
+#ifndef BOOK_Level1_HPP
+#define BOOK_Level1_HPP
 
 #include <Book/ResourceHolder.hpp>
 #include <Book/ResourceIdentifiers.hpp>
@@ -23,10 +23,10 @@ namespace sf
 	class RenderWindow;
 }
 
-class World : private sf::NonCopyable
+class Level1 : private sf::NonCopyable
 {
 	public:
-		explicit							World(sf::RenderWindow& window, FontHolder& fonts);
+		explicit							Level1(sf::RenderWindow& window, FontHolder& fonts);
 		void								update(sf::Time dt);
 		void								draw();
 		
@@ -34,7 +34,8 @@ class World : private sf::NonCopyable
 
 		bool 								hasAlivePlayer() const;
 		bool 								hasPlayerReachedEnd() const;
-
+		void								initialize();
+		void								clearLevel();
 
 	private:
 		void								loadTextures();
@@ -51,6 +52,7 @@ class World : private sf::NonCopyable
 		sf::FloatRect						getViewBounds() const;
 		sf::FloatRect						getBattlefieldBounds() const;
 
+		bool								matchesCategories(SceneNode::Pair& colliders, Category::Type type1, Category::Type type2);
 
 	private:
 		enum Layer

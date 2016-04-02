@@ -2,7 +2,9 @@
 #define BOOK_GAMESTATE_HPP
 
 #include <Book/State.hpp>
-#include <Book/World.hpp>
+#include <Book/Level1.hpp>
+#include <Book/Level2.hpp>
+#include <Book/Level3.hpp>
 #include <Book/Player.hpp>
 
 #include <SFML/Graphics/Sprite.hpp>
@@ -18,10 +20,18 @@ class GameState : public State
 		virtual bool		update(sf::Time dt);
 		virtual bool		handleEvent(const sf::Event& event);
 
+		enum CurrentLevel
+		{
+			LVL_1, LVL_2, LVL_3, TOTAL_LEVELS
+		};
 
 	private:
-		World				mWorld;
+		Level1				level1;
+		Level2				level2;
+		Level3				level3;
 		Player&				mPlayer;
+
+		CurrentLevel		level;
 };
 
 #endif // BOOK_GAMESTATE_HPP

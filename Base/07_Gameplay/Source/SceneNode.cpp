@@ -35,6 +35,13 @@ SceneNode::Ptr SceneNode::detachChild(const SceneNode& node)
 	return result;
 }
 
+SceneNode::Ptr& SceneNode::getChild(unsigned int child)
+{
+	assert(child <= mChildren.size()-1);
+
+	return mChildren[child];
+}
+
 void SceneNode::update(sf::Time dt, CommandQueue& commands)
 {
 	updateCurrent(dt, commands);
@@ -88,6 +95,22 @@ void SceneNode::drawBoundingRect(sf::RenderTarget& target, sf::RenderStates) con
 	shape.setOutlineThickness(1.f);
 
 	target.draw(shape);
+}
+
+bool SceneNode::isEmpty()
+{
+	bool b = false;
+
+	if (mChildren.empty())
+		b = true;
+
+	return b;
+}
+
+void SceneNode::pop()
+{
+	if (!mChildren.empty())
+		mChildren.pop_back();
 }
 
 sf::Vector2f SceneNode::getWorldPosition() const

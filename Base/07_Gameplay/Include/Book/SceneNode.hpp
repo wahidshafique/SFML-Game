@@ -29,6 +29,7 @@ class SceneNode : public sf::Transformable, public sf::Drawable, private sf::Non
 
 		void					attachChild(Ptr child);
 		Ptr						detachChild(const SceneNode& node);
+		Ptr&					getChild(unsigned int);
 		
 		void					update(sf::Time dt, CommandQueue& commands);
 
@@ -44,7 +45,8 @@ class SceneNode : public sf::Transformable, public sf::Drawable, private sf::Non
 		virtual sf::FloatRect	getBoundingRect() const;
 		virtual bool			isMarkedForRemoval() const;
 		virtual bool			isDestroyed() const;
-
+		bool					isEmpty();
+		void					pop();
 
 	private:
 		virtual void			updateCurrent(sf::Time dt, CommandQueue& commands);

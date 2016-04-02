@@ -1,4 +1,4 @@
-#include <Book/World.hpp>
+#include <Book/Level3.hpp>
 #include <Book/Projectile.hpp>
 #include <Book/Pickup.hpp>
 #include <Book/Foreach.hpp>
@@ -10,7 +10,7 @@
 #include <limits>
 
 
-World::World(sf::RenderWindow& window, FontHolder& fonts)
+Level3::Level3(sf::RenderWindow& window, FontHolder& fonts)
 : mWindow(window)
 , mWorldView(window.getDefaultView())
 , mFonts(fonts)
@@ -19,19 +19,23 @@ World::World(sf::RenderWindow& window, FontHolder& fonts)
 , mSceneLayers()
 , mWorldBounds(0.f, 0.f, mWorldView.getSize().x, 2000.f)
 , mSpawnPosition(mWorldView.getSize().x / 2.f, mWorldBounds.height - mWorldView.getSize().y / 2.f)
-, mScrollSpeed(-50.f)
+, mScrollSpeed(-250.f)
 , mPlayerAircraft(nullptr)
 , mEnemySpawnPoints()
 , mActiveEnemies()
 {
 	loadTextures();
-	buildScene();
-
+	
 	// Prepare the view
 	mWorldView.setCenter(mSpawnPosition);
 }
 
-void World::update(sf::Time dt)
+void Level3::initialize()
+{
+	buildScene();
+}
+
+void Level3::update(sf::Time dt)
 {
 	// Scroll the world, reset player velocity
 	mWorldView.move(0.f, mScrollSpeed * dt.asSeconds());	
@@ -58,34 +62,44 @@ void World::update(sf::Time dt)
 	adaptPlayerPosition();
 }
 
-void World::draw()
+void Level3::draw()
 {
 	mWindow.setView(mWorldView);
 	mWindow.draw(mSceneGraph);
 }
 
-CommandQueue& World::getCommandQueue()
+CommandQueue& Level3::getCommandQueue()
 {
 	return mCommandQueue;
 }
 
-bool World::hasAlivePlayer() const
+bool Level3::hasAlivePlayer() const
 {
 	return !mPlayerAircraft->isMarkedForRemoval();
 }
 
-bool World::hasPlayerReachedEnd() const
+bool Level3::hasPlayerReachedEnd() const
 {
 	return !mWorldBounds.contains(mPlayerAircraft->getPosition());
 }
 
-void World::loadTextures()
+void Level3::clearLevel()
+{
+	while (!mSceneLayers[Air]->isEmpty())
+		mSceneLayers[Air]->pop();
+
+	mSceneLayers[Background]->pop();
+}
+
+void Level3::loadTextures()
 {
 	mTextures.load(Textures::Eagle, "Media/Textures/Eagle.png");
 	mTextures.load(Textures::Raptor, "Media/Textures/Raptor.png");
 	mTextures.load(Textures::Avenger, "Media/Textures/Avenger.png");
 	mTextures.load(Textures::Desert, "Media/Textures/Desert.png");
-	
+	mTextures.load(Textures::Sea, "Media/Textures/sea-texture.jpg");
+	mTextures.load(Textures::Grass, "Media/Textures/grass-texture.jpg");
+
 	mTextures.load(Textures::Bullet, "Media/Textures/Bullet.png");
 	mTextures.load(Textures::Missile, "Media/Textures/Missile.png");
 
@@ -95,7 +109,7 @@ void World::loadTextures()
 	mTextures.load(Textures::FireRate, "Media/Textures/FireRate.png");
 }
 
-void World::adaptPlayerPosition()
+void Level3::adaptPlayerPosition()
 {
 	// Keep player's position inside the screen bounds, at least borderDistance units from the border
 	sf::FloatRect viewBounds = getViewBounds();
@@ -109,7 +123,7 @@ void World::adaptPlayerPosition()
 	mPlayerAircraft->setPosition(position);
 }
 
-void World::adaptPlayerVelocity()
+void Level3::adaptPlayerVelocity()
 {
 	sf::Vector2f velocity = mPlayerAircraft->getVelocity();
 
@@ -121,7 +135,7 @@ void World::adaptPlayerVelocity()
 	mPlayerAircraft->accelerate(0.f, mScrollSpeed);
 }
 
-bool matchesCategories(SceneNode::Pair& colliders, Category::Type type1, Category::Type type2)
+bool Level3::matchesCategories(SceneNode::Pair& colliders, Category::Type type1, Category::Type type2)
 {
 	unsigned int category1 = colliders.first->getCategory();
 	unsigned int category2 = colliders.second->getCategory();
@@ -142,7 +156,7 @@ bool matchesCategories(SceneNode::Pair& colliders, Category::Type type1, Categor
 	}
 }
 
-void World::handleCollisions()
+void Level3::handleCollisions()
 {
 	std::set<SceneNode::Pair> collisionPairs;
 	mSceneGraph.checkSceneCollision(mSceneGraph, collisionPairs);
@@ -182,7 +196,7 @@ void World::handleCollisions()
 	}
 }
 
-void World::buildScene()
+void Level3::buildScene()
 {
 	// Initialize the different layers
 	for (std::size_t i = 0; i < LayerCount; ++i)
@@ -196,7 +210,7 @@ void World::buildScene()
 	}
 
 	// Prepare the tiled background
-	sf::Texture& texture = mTextures.get(Textures::Desert);
+	sf::Texture& texture = mTextures.get(Textures::Grass);
 	sf::IntRect textureRect(mWorldBounds);
 	texture.setRepeated(true);
 
@@ -215,7 +229,7 @@ void World::buildScene()
 	addEnemies();
 }
 
-void World::addEnemies()
+void Level3::addEnemies()
 {
 	// Add enemies to the spawn point container
 	addEnemy(Aircraft::Raptor,    0.f,  500.f);
@@ -234,13 +248,13 @@ void World::addEnemies()
 	});
 }
 
-void World::addEnemy(Aircraft::Type type, float relX, float relY)
+void Level3::addEnemy(Aircraft::Type type, float relX, float relY)
 {
 	SpawnPoint spawn(type, mSpawnPosition.x + relX, mSpawnPosition.y - relY);
 	mEnemySpawnPoints.push_back(spawn);
 }
 
-void World::spawnEnemies()
+void Level3::spawnEnemies()
 {
 	// Spawn all enemies entering the view area (including distance) this frame
 	while (!mEnemySpawnPoints.empty()
@@ -259,7 +273,7 @@ void World::spawnEnemies()
 	}
 }
 
-void World::destroyEntitiesOutsideView()
+void Level3::destroyEntitiesOutsideView()
 {
 	Command command;
 	command.category = Category::Projectile | Category::EnemyAircraft;
@@ -272,7 +286,7 @@ void World::destroyEntitiesOutsideView()
 	mCommandQueue.push(command);
 }
 
-void World::guideMissiles()
+void Level3::guideMissiles()
 {
 	// Setup command that stores all enemies in mActiveEnemies
 	Command enemyCollector;
@@ -317,12 +331,12 @@ void World::guideMissiles()
 	mActiveEnemies.clear();
 }
 
-sf::FloatRect World::getViewBounds() const
+sf::FloatRect Level3::getViewBounds() const
 {
 	return sf::FloatRect(mWorldView.getCenter() - mWorldView.getSize() / 2.f, mWorldView.getSize());
 }
 
-sf::FloatRect World::getBattlefieldBounds() const
+sf::FloatRect Level3::getBattlefieldBounds() const
 {
 	// Return view bounds + some area at top, where enemies spawn
 	sf::FloatRect bounds = getViewBounds();

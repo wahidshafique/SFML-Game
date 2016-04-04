@@ -6,21 +6,23 @@
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
+#include <Book/GameState.hpp>
 
 
 class GameOverState : public State
 {
 	public:
-							GameOverState(StateStack& stack, Context context);
+		GameOverState(StateStack& stack, Context context);
 
-		virtual void		draw();
-		virtual bool		update(sf::Time dt);
-		virtual bool		handleEvent(const sf::Event& event);
+		virtual void				draw();
+		virtual bool				update(sf::Time dt);
+		virtual bool				handleEvent(const sf::Event& event);
 
 
 	private:
-		sf::Text			mGameOverText;
-		sf::Time			mElapsedTime;
+		sf::Text					mGameOverText;
+		sf::Time					mElapsedTime;
+		Player::MissionStatus		mStatus;
 };
 
 #endif // BOOK_GAMEOVERSTATE_HPP

@@ -8,6 +8,7 @@
 #include <Book/Aircraft.hpp>
 #include <Book/CommandQueue.hpp>
 #include <Book/Command.hpp>
+#include <Book/Player.hpp>
 
 #include <SFML/System/NonCopyable.hpp>
 #include <SFML/Graphics/View.hpp>
@@ -26,7 +27,8 @@ namespace sf
 class Level1 : private sf::NonCopyable
 {
 	public:
-		explicit							Level1(sf::RenderWindow& window, FontHolder& fonts);
+		explicit							Level1(sf::RenderWindow& window, FontHolder& fonts,
+													Player& player);
 		void								update(sf::Time dt);
 		void								draw();
 		
@@ -91,6 +93,7 @@ class Level1 : private sf::NonCopyable
 		sf::Vector2f						mSpawnPosition;
 		float								mScrollSpeed;
 		Aircraft*							mPlayerAircraft;
+		Player&								mPlayer;
 
 		std::vector<SpawnPoint>				mEnemySpawnPoints;
 		std::vector<Aircraft*>				mActiveEnemies;

@@ -23,7 +23,7 @@ Level2::Level2(sf::RenderWindow& window, FontHolder& fonts)
 , mPlayerAircraft(nullptr)
 , mEnemySpawnPoints()
 , mActiveEnemies()
-, enemyCount(75)
+, enemyCount(10)
 {
 	loadTextures();
 	

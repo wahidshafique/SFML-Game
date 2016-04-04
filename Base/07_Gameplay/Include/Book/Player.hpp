@@ -28,7 +28,8 @@ class Player
 		{
 			MissionRunning,
 			MissionSuccess,
-			MissionFailure
+			MissionFailure,
+			MissionWin
 		};
 
 

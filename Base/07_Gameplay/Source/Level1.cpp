@@ -9,8 +9,10 @@
 #include <cmath>
 #include <limits>
 
+#include <iostream>
 
-Level1::Level1(sf::RenderWindow& window, FontHolder& fonts)
+Level1::Level1(sf::RenderWindow& window, FontHolder& fonts,
+			   Player& player)
 : mWindow(window)
 , mWorldView(window.getDefaultView())
 , mFonts(fonts)
@@ -23,6 +25,7 @@ Level1::Level1(sf::RenderWindow& window, FontHolder& fonts)
 , mPlayerAircraft(nullptr)
 , mEnemySpawnPoints()
 , mActiveEnemies()
+, mPlayer(player)
 {
 	loadTextures();
 
@@ -32,7 +35,7 @@ Level1::Level1(sf::RenderWindow& window, FontHolder& fonts)
 
 void Level1::initialize()
 {
-	buildScene();
+	buildScene();	
 }
 
 void Level1::update(sf::Time dt)
@@ -227,6 +230,8 @@ void Level1::buildScene()
 
 	// Add enemy aircraft
 	addEnemies();
+
+	//mPlayer->setMissionStatus(Player::MissionFailure);
 }
 
 void Level1::addEnemies()

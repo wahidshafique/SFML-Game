@@ -3,11 +3,11 @@
 
 GameState::GameState(StateStack& stack, Context context)
 : State(stack, context)
-, level1(*context.window, *context.fonts)
+, mPlayer(*context.player)
+, level1(*context.window, *context.fonts, *context.player)
 , level2(*context.window, *context.fonts)
 , level3(*context.window, *context.fonts)
 , level(CurrentLevel::LVL_1)
-, mPlayer(*context.player)
 {
 	level1.initialize();
 	mPlayer.setMissionStatus(Player::MissionRunning);
@@ -44,6 +44,7 @@ bool GameState::update(sf::Time dt)
 			else if(level1.hasPlayerReachedEnd())
 			{
 				mPlayer.setMissionStatus(Player::MissionSuccess);
+				requestStackPush(States::GameOver);
 				level = CurrentLevel::LVL_2;
 				level1.clearLevel();
 				level2.initialize();
@@ -60,6 +61,7 @@ bool GameState::update(sf::Time dt)
 			else if(level2.hasPlayerReachedEnd())
 			{
 				mPlayer.setMissionStatus(Player::MissionSuccess);
+				requestStackPush(States::GameOver);
 				level = CurrentLevel::LVL_3;
 				level2.clearLevel();
 				level3.initialize();
@@ -75,7 +77,7 @@ bool GameState::update(sf::Time dt)
 			}
 			else if(level3.hasPlayerReachedEnd())
 			{
-				mPlayer.setMissionStatus(Player::MissionSuccess);
+				mPlayer.setMissionStatus(Player::MissionWin);
 				requestStackPush(States::GameOver);
 			}
 			mPlayer.handleRealtimeInput(level3.getCommandQueue());

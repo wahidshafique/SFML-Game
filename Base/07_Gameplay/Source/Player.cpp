@@ -17,6 +17,11 @@ struct AircraftMover
 	{
 	}
 
+	AircraftMover(sf::Vector2f dir)
+	: velocity(dir)
+	{
+	}
+
 	void operator() (Aircraft& aircraft, sf::Time) const
 	{
 		aircraft.accelerate(velocity * aircraft.getMaxSpeed());
@@ -27,6 +32,7 @@ struct AircraftMover
 
 Player::Player()
 : mCurrentMissionStatus(MissionRunning)
+, mSeek()
 {
 	// Set initial key bindings
 	mKeyBinding[sf::Keyboard::Left] = MoveLeft;
@@ -35,13 +41,18 @@ Player::Player()
 	mKeyBinding[sf::Keyboard::Down] = MoveDown;
 	mKeyBinding[sf::Keyboard::Space] = Fire;
 	mKeyBinding[sf::Keyboard::M] = LaunchMissile;
- 
+	mMouseBinding[sf::Mouse::Left] = SeekTarget;
+
 	// Set initial action bindings
 	initializeActions();	
 
 	// Assign all categories to player's aircraft
 	FOREACH(auto& pair, mActionBinding)
 		pair.second.category = Category::PlayerAircraft;
+
+	mSeek.isSeek = false;
+	mSeek.direction = sf::Vector2f();
+	mSeek.target = sf::Vector2f();
 }
 
 void Player::handleEvent(const sf::Event& event, CommandQueue& commands)
@@ -51,7 +62,17 @@ void Player::handleEvent(const sf::Event& event, CommandQueue& commands)
 		// Check if pressed key appears in key binding, trigger command if so
 		auto found = mKeyBinding.find(event.key.code);
 		if (found != mKeyBinding.end() && !isRealtimeAction(found->second))
+		{
 			commands.push(mActionBinding[found->second]);
+		}
+	}
+	if (event.type == sf::Event::MouseButtonPressed)
+	{
+		auto found = mMouseBinding.find(event.mouseButton.button);
+		if (found != mMouseBinding.end() && !isRealtimeAction(found->second))
+		{
+			commands.push(mActionBinding[found->second]);
+		}
 	}
 }
 
@@ -64,6 +85,32 @@ void Player::handleRealtimeInput(CommandQueue& commands)
 		if (sf::Keyboard::isKeyPressed(pair.first) && isRealtimeAction(pair.second))
 			commands.push(mActionBinding[pair.second]);
 	}
+}
+
+void Player::assignButton(Action action, sf::Mouse::Button button)
+{
+	// Remove all keys that already map to action
+	for (auto itr = mMouseBinding.begin(); itr != mMouseBinding.end();)
+	{
+		if (itr->second == action)
+			mMouseBinding.erase(itr++);
+		else
+			++itr;
+	}
+
+	// Insert new binding
+	mMouseBinding[button] = action;
+}
+
+sf::Mouse::Button Player::getAssignedButton(Action action) const
+{
+	FOREACH(auto pair, mMouseBinding)
+	{
+		if (pair.second == action)
+			return pair.first;
+	}
+
+	return sf::Mouse::Button::ButtonCount; //check against this
 }
 
 void Player::assignKey(Action action, sf::Keyboard::Key key)
@@ -102,12 +149,25 @@ Player::MissionStatus Player::getMissionStatus() const
 	return mCurrentMissionStatus;
 }
 
+sf::Vector2f Player::getDirectionFromMousePosition()
+{
+	sf::Vector2i mousePos = sf::Mouse::getPosition();
+
+
+}
+
+bool Player::CanSeek()
+{
+	return mSeek.isSeek;
+}
+
 void Player::initializeActions()
 {
 	mActionBinding[MoveLeft].action      = derivedAction<Aircraft>(AircraftMover(-1,  0));
 	mActionBinding[MoveRight].action     = derivedAction<Aircraft>(AircraftMover(+1,  0));
 	mActionBinding[MoveUp].action        = derivedAction<Aircraft>(AircraftMover( 0, -1));
 	mActionBinding[MoveDown].action      = derivedAction<Aircraft>(AircraftMover( 0, +1));
+	mActionBinding[SeekTarget].action	 = derivedAction<Aircraft>(AircraftMover(mSeek.direction));
 	mActionBinding[Fire].action          = derivedAction<Aircraft>([] (Aircraft& a, sf::Time){ a.fire(); });
 	mActionBinding[LaunchMissile].action = derivedAction<Aircraft>([] (Aircraft& a, sf::Time){ a.launchMissile(); });
 }
@@ -121,6 +181,7 @@ bool Player::isRealtimeAction(Action action)
 		case MoveDown:
 		case MoveUp:
 		case Fire:
+		case SeekTarget:
 			return true;
 
 		default:

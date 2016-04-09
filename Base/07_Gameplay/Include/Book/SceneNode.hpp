@@ -27,6 +27,8 @@ class SceneNode : public sf::Transformable, public sf::Drawable, private sf::Non
 	public:
 		explicit				SceneNode(Category::Type category = Category::None);
 
+		static sf::Vector2f			normalize(sf::Vector2f source);
+
 		void					attachChild(Ptr child);
 		Ptr						detachChild(const SceneNode& node);
 		Ptr&					getChild(unsigned int);

@@ -4,6 +4,7 @@
 #include <SFML/System/NonCopyable.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
+#include <SFML/Window/Mouse.hpp>
 
 #include <memory>
 
@@ -36,7 +37,7 @@ class Component : public sf::Drawable, public sf::Transformable, private sf::Non
         virtual void		deactivate();
 
         virtual void		handleEvent(const sf::Event& event) = 0;
-
+		virtual bool		checkWorldBounds() = 0;
 
     private:
         bool				mIsSelected;

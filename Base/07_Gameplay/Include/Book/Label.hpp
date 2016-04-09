@@ -24,7 +24,7 @@ class Label : public Component
 		void				setText(const std::string& text);
 
         virtual void		handleEvent(const sf::Event& event);
-
+		bool				checkWorldBounds();
 
     private:
         void				draw(sf::RenderTarget& target, sf::RenderStates states) const;

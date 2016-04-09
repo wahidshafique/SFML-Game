@@ -4,29 +4,51 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
-
 SettingsState::SettingsState(StateStack& stack, Context context)
 : State(stack, context)
 , mGUIContainer()
 {
-	mBackgroundSprite.setTexture(context.textures->get(Textures::TitleScreen));
-	
+	mBackgroundSprite.setTexture(context.textures->get(Textures::TitleScreen));	
+
+	// Build button for changing controls between mouse and keyboard movement
+	mChangeControlButton = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *context.window);
+	mChangeControlButton->setPosition(80.f, 250.f);
+	if (context.player->isMouse())
+		mChangeControlButton->setText("Keyboard Controls");
+	else
+		mChangeControlButton->setText("Mouse Controls");
+	mChangeControlButton->setCallback([this] ()
+	{
+		if (this->getContext().player->isMouse())
+		{			
+			mChangeControlButton->setText("Mouse Controls");
+			this->getContext().player->setMouse(false);
+			hideControlButtons(false);
+		}
+		else
+		{
+			mChangeControlButton->setText("Keyboard Controls");
+			this->getContext().player->setMouse(true);
+			hideControlButtons(true);
+		}
+	});											
+
+	mGUIContainer.pack(mChangeControlButton);
+
 	// Build key binding buttons and labels
-	addButtonLabel(Player::MoveLeft,		300.f, "Move Left", context);
-	addButtonLabel(Player::MoveRight,		350.f, "Move Right", context);
-	addButtonLabel(Player::MoveUp,			400.f, "Move Up", context);
-	addButtonLabel(Player::MoveDown,		450.f, "Move Down", context);
-	addButtonLabel(Player::Fire,			500.f, "Fire", context);
-	addButtonLabel(Player::LaunchMissile,	550.f, "Missile", context);
+	addControlButtons(context);
 
-	updateLabels();
+	if (context.player->isMouse())
+		hideControlButtons(true);
 
-	auto backButton = std::make_shared<GUI::Button>(*context.fonts, *context.textures);
-	backButton->setPosition(80.f, 620.f);
+	updateLabels();	
+
+	auto backButton = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *context.window);
+	backButton->setPosition(420.f, 650.f);
 	backButton->setText("Back");
-	backButton->setCallback(std::bind(&SettingsState::requestStackPop, this));
-
-	mGUIContainer.pack(backButton);
+	backButton->setCallback(std::bind(&SettingsState::requestStackPop, this));	
+	
+	mGUIContainer.pack(backButton);	
 }
 
 void SettingsState::draw()
@@ -44,7 +66,7 @@ bool SettingsState::update(sf::Time)
 
 bool SettingsState::handleEvent(const sf::Event& event)
 {
-	bool isKeyBinding = false;
+	bool isKeyBinding = false;	
 	
 	// Iterate through all key binding buttons to see if they are being pressed, waiting for the user to enter a key
 	for (std::size_t action = 0; action < Player::ActionCount; ++action)
@@ -66,13 +88,33 @@ bool SettingsState::handleEvent(const sf::Event& event)
 		updateLabels();
 	else
 		mGUIContainer.handleEvent(event);
-
+	
 	return false;
+}
+
+void SettingsState::hideControlButtons(bool flag)
+{
+	for (int i = 0; i < mBindingButtons.size(); i++)
+	{
+		if (i != Player::Fire && i != Player::LaunchMissile)
+			mBindingButtons[i]->setHide(flag);
+	}
+}
+
+void SettingsState::addControlButtons(Context& context)
+{
+	addButtonLabel(Player::MoveLeft,		300.f, "Move Left", context);
+	addButtonLabel(Player::MoveRight,		350.f, "Move Right", context);
+	addButtonLabel(Player::MoveUp,			400.f, "Move Up", context);
+	addButtonLabel(Player::MoveDown,		450.f, "Move Down", context);
+	addButtonLabel(Player::Fire,			500.f, "Fire", context);
+	addButtonLabel(Player::LaunchMissile,	550.f, "Missile", context);
+	addButtonLabel(Player::LaunchEnergy,	600.f, "Energy", context);
 }
 
 void SettingsState::updateLabels()
 {
-	Player& player = *getContext().player;
+	Player& player = *getContext().player;	
 
 	for (std::size_t i = 0; i < Player::ActionCount; ++i)
 	{
@@ -83,7 +125,7 @@ void SettingsState::updateLabels()
 
 void SettingsState::addButtonLabel(Player::Action action, float y, const std::string& text, Context context)
 {
-	mBindingButtons[action] = std::make_shared<GUI::Button>(*context.fonts, *context.textures);
+	mBindingButtons[action] = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *getContext().window);
 	mBindingButtons[action]->setPosition(80.f, y);
 	mBindingButtons[action]->setText(text);
 	mBindingButtons[action]->setToggle(true);

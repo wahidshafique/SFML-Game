@@ -17,6 +17,7 @@ class Pickup : public Entity
 		{
 			HealthRefill,
 			MissileRefill,
+			EnergyRefill,
 			FireSpread,
 			FireRate,
 			TypeCount

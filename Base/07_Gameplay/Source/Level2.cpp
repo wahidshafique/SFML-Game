@@ -49,7 +49,7 @@ void Level2::update(sf::Time dt)
 	// Forward commands to scene graph, adapt velocity (scrolling, diagonal correction)
 	while (!mCommandQueue.isEmpty())
 		mSceneGraph.onCommand(mCommandQueue.pop(), dt);
-	adaptPlayerVelocity();
+	adaptPlayerVelocity(dt.asSeconds());
 
 	// Collision detection and response (may destroy entities)
 	handleCollisions();
@@ -103,9 +103,11 @@ void Level2::loadTextures()
 
 	mTextures.load(Textures::Bullet, "Media/Textures/Bullet.png");
 	mTextures.load(Textures::Missile, "Media/Textures/Missile.png");
+	mTextures.load(Textures::EnergyBall, "Media/Textures/EnergyBall.png");
 
 	mTextures.load(Textures::HealthRefill, "Media/Textures/HealthRefill.png");
 	mTextures.load(Textures::MissileRefill, "Media/Textures/MissileRefill.png");
+	mTextures.load(Textures::EnergyRefill, "Media/Textures/EnergyRefill.png");
 	mTextures.load(Textures::FireSpread, "Media/Textures/FireSpread.png");
 	mTextures.load(Textures::FireRate, "Media/Textures/FireRate.png");
 }
@@ -124,9 +126,23 @@ void Level2::adaptPlayerPosition()
 	mPlayerAircraft->setPosition(position);
 }
 
-void Level2::adaptPlayerVelocity()
+void Level2::adaptPlayerVelocity(float deltaTime)
 {
 	sf::Vector2f velocity = mPlayerAircraft->getVelocity();
+
+	if (mPlayerAircraft->isSeek())
+	{
+		sf::Vector2i screenPos = mPlayerAircraft->getTarget();
+		sf::Vector2f target = mWindow.mapPixelToCoords(screenPos, mWorldView);
+		
+		sf::Vector2f direction = SceneNode::normalize(target - mPlayerAircraft->getWorldPosition());
+
+		float speed = mPlayerAircraft->getMaxSpeed();
+
+		mPlayerAircraft->move(direction*speed*deltaTime);
+
+		mPlayerAircraft->seekTarget(mPlayerAircraft->getWorldPosition(), target);
+	}
 
 	// If moving diagonally, reduce velocity (to have always same velocity)
 	if (velocity.x != 0.f && velocity.y != 0.f)
@@ -221,7 +237,7 @@ void Level2::buildScene()
 	mSceneLayers[Background]->attachChild(std::move(backgroundSprite));
 
 	// Add player's aircraft
-	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, mTextures, mFonts));
+	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, mTextures, mFonts, mWindow));
 	mPlayerAircraft = player.get();
 	mPlayerAircraft->setPosition(mSpawnPosition);
 	mSceneLayers[Air]->attachChild(std::move(player));
@@ -274,7 +290,7 @@ void Level2::spawnEnemies()
 	{
 		SpawnPoint spawn = mEnemySpawnPoints.back();
 		
-		std::unique_ptr<Aircraft> enemy(new Aircraft(spawn.type, mTextures, mFonts));
+		std::unique_ptr<Aircraft> enemy(new Aircraft(spawn.type, mTextures, mFonts, mWindow));
 		enemy->setPosition(spawn.x, spawn.y);
 		enemy->setRotation(180.f);
 

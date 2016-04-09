@@ -35,6 +35,16 @@ bool Projectile::isGuided() const
 	return mType == Missile;
 }
 
+bool Projectile::isEnergyBall()
+{
+	return mType == EnergyBall;
+}
+#include <iostream>
+void Projectile::split()
+{
+	std::cout << "Split" << std::endl;
+}
+
 void Projectile::updateCurrent(sf::Time dt, CommandQueue& commands)
 {
 	if (isGuided())

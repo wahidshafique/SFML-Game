@@ -5,23 +5,25 @@
 #include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 
-
+#include <iostream>
 namespace GUI
 {
 
-Button::Button(const FontHolder& fonts, const TextureHolder& textures)
+Button::Button(const FontHolder& fonts, const TextureHolder& textures, const sf::RenderWindow& window)
 : mCallback()
 , mNormalTexture(textures.get(Textures::ButtonNormal))
 , mSelectedTexture(textures.get(Textures::ButtonSelected))
 , mPressedTexture(textures.get(Textures::ButtonPressed))
 , mSprite()
 , mText("", fonts.get(Fonts::Main), 16)
+, mWindow(window)
 , mIsToggle(false)
+, mIsHiding(false)
 {
 	mSprite.setTexture(mNormalTexture);
 
-	sf::FloatRect bounds = mSprite.getLocalBounds();
-	mText.setPosition(bounds.width / 2.f, bounds.height / 2.f);
+	bounds = mSprite.getLocalBounds();
+	mText.setPosition(bounds.width / 2.f, bounds.height / 2.f);	
 }
 
 void Button::setCallback(Callback callback)
@@ -42,7 +44,24 @@ void Button::setToggle(bool flag)
 
 bool Button::isSelectable() const
 {
-    return true;
+    if (mIsHiding)
+		return false;
+
+	return true;
+}
+
+void Button::setHide(bool flag)
+{
+	mIsHiding = flag;
+	
+	sf::Color color = mSprite.getColor();
+	
+	if (flag)
+		color.a = 100.f;
+	else
+		color.a = 255.f;
+
+	mSprite.setColor(color);
 }
 
 void Button::select()
@@ -87,6 +106,19 @@ void Button::deactivate()
 		else
 			mSprite.setTexture(mNormalTexture);
 	}
+}
+
+bool Button::checkWorldBounds()
+{
+	bounds.left = this->getPosition().x;
+	bounds.top = this->getPosition().y;
+
+	if (bounds.contains(sf::Mouse::getPosition(mWindow).x, sf::Mouse::getPosition(mWindow).y))
+	{
+		return true;
+	}
+	
+	return false;
 }
 
 void Button::handleEvent(const sf::Event&)

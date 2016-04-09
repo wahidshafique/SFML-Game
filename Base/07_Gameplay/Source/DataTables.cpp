@@ -53,6 +53,14 @@ std::vector<ProjectileData> initializeProjectileData()
 	data[Projectile::Missile].speed = 150.f;
 	data[Projectile::Missile].texture = Textures::Missile;
 
+	data[Projectile::EnergyBall].damage = 10;
+	data[Projectile::EnergyBall].speed = 100.f;
+	data[Projectile::EnergyBall].texture = Textures::EnergyBall;
+
+	data[Projectile::SmallEnergy].damage = 2;
+	data[Projectile::SmallEnergy].speed = 350.f;
+	data[Projectile::SmallEnergy].texture = Textures::EnergyBall;
+
 	return data;
 }
 
@@ -65,6 +73,9 @@ std::vector<PickupData> initializePickupData()
 	
 	data[Pickup::MissileRefill].texture = Textures::MissileRefill;
 	data[Pickup::MissileRefill].action = std::bind(&Aircraft::collectMissiles, _1, 3);
+
+	data[Pickup::EnergyRefill].texture = Textures::EnergyRefill;
+	data[Pickup::EnergyRefill].action = std::bind(&Aircraft::collectEnergy, _1, 2);
 	
 	data[Pickup::FireSpread].texture = Textures::FireSpread;
 	data[Pickup::FireSpread].action = std::bind(&Aircraft::increaseSpread, _1);

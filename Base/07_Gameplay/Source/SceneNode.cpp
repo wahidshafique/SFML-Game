@@ -18,6 +18,16 @@ SceneNode::SceneNode(Category::Type category)
 {
 }
 
+sf::Vector2f SceneNode::normalize(sf::Vector2f source)
+{
+	float length = sqrt((source.x * source.x) + (source.y * source.y));
+	
+	if (length != 0)
+		return sf::Vector2f(source.x / length, source.y / length);
+			
+	return source;
+}
+
 void SceneNode::attachChild(Ptr child)
 {
 	child->mParent = this;

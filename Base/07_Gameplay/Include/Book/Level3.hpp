@@ -40,7 +40,7 @@ class Level3 : private sf::NonCopyable
 	private:
 		void								loadTextures();
 		void								adaptPlayerPosition();
-		void								adaptPlayerVelocity();
+		void								adaptPlayerVelocity(float deltaTime);
 		void								handleCollisions();
 		
 		void								buildScene();

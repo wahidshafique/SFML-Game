@@ -48,6 +48,7 @@ bool GameState::update(sf::Time dt)
 				level = CurrentLevel::LVL_2;
 				level1.clearLevel();
 				level2.initialize();
+				//mPlayer.setMissionStatus(Player::MissionRunning);
 			}
 			mPlayer.handleRealtimeInput(level1.getCommandQueue());
 			break;
@@ -65,6 +66,7 @@ bool GameState::update(sf::Time dt)
 				level = CurrentLevel::LVL_3;
 				level2.clearLevel();
 				level3.initialize();
+				//mPlayer.setMissionStatus(Player::MissionRunning);
 			}
 			mPlayer.handleRealtimeInput(level2.getCommandQueue());
 			break;

@@ -21,7 +21,7 @@ Level1::Level1(sf::RenderWindow& window, FontHolder& fonts,
 , mSceneLayers()
 , mWorldBounds(0.f, 0.f, mWorldView.getSize().x, 2000.f)
 , mSpawnPosition(mWorldView.getSize().x / 2.f, mWorldBounds.height - mWorldView.getSize().y / 2.f)
-, mScrollSpeed(-250.f)
+, mScrollSpeed(-50.f)
 , mPlayerAircraft(nullptr)
 , mEnemySpawnPoints()
 , mActiveEnemies()
@@ -41,17 +41,18 @@ void Level1::initialize()
 void Level1::update(sf::Time dt)
 {
 	// Scroll the world, reset player velocity
-	mWorldView.move(0.f, mScrollSpeed * dt.asSeconds());	
+	mWorldView.move(0.f, mScrollSpeed * dt.asSeconds());
 	mPlayerAircraft->setVelocity(0.f, 0.f);
 
 	// Setup commands to destroy entities, and guide missiles
 	destroyEntitiesOutsideView();
 	guideMissiles();
 
-	// Forward commands to scene graph, adapt velocity (scrolling, diagonal correction)
+	// Forward commands to scene graph, adapt velocity (scrolling, diagonal correction),
+	// and seek a target if possible
 	while (!mCommandQueue.isEmpty())
-		mSceneGraph.onCommand(mCommandQueue.pop(), dt);
-	adaptPlayerVelocity();
+		mSceneGraph.onCommand(mCommandQueue.pop(), dt);	
+	adaptPlayerVelocity(dt.asSeconds());	
 
 	// Collision detection and response (may destroy entities)
 	handleCollisions();
@@ -105,9 +106,11 @@ void Level1::loadTextures()
 
 	mTextures.load(Textures::Bullet, "Media/Textures/Bullet.png");
 	mTextures.load(Textures::Missile, "Media/Textures/Missile.png");
+	mTextures.load(Textures::EnergyBall, "Media/Textures/EnergyBall.png");
 
 	mTextures.load(Textures::HealthRefill, "Media/Textures/HealthRefill.png");
 	mTextures.load(Textures::MissileRefill, "Media/Textures/MissileRefill.png");
+	mTextures.load(Textures::EnergyRefill, "Media/Textures/EnergyRefill.png");
 	mTextures.load(Textures::FireSpread, "Media/Textures/FireSpread.png");
 	mTextures.load(Textures::FireRate, "Media/Textures/FireRate.png");
 }
@@ -126,9 +129,23 @@ void Level1::adaptPlayerPosition()
 	mPlayerAircraft->setPosition(position);
 }
 
-void Level1::adaptPlayerVelocity()
+void Level1::adaptPlayerVelocity(float deltaTime)
 {
 	sf::Vector2f velocity = mPlayerAircraft->getVelocity();
+
+	if (mPlayerAircraft->isSeek())
+	{
+		sf::Vector2i screenPos = mPlayerAircraft->getTarget();
+		sf::Vector2f target = mWindow.mapPixelToCoords(screenPos, mWorldView);
+		
+		sf::Vector2f direction = SceneNode::normalize(target - mPlayerAircraft->getWorldPosition());
+
+		float speed = mPlayerAircraft->getMaxSpeed();
+
+		mPlayerAircraft->move(direction*speed*deltaTime);
+
+		mPlayerAircraft->seekTarget(mPlayerAircraft->getWorldPosition(), target);
+	}
 
 	// If moving diagonally, reduce velocity (to have always same velocity)
 	if (velocity.x != 0.f && velocity.y != 0.f)
@@ -194,6 +211,10 @@ void Level1::handleCollisions()
 
 			// Apply projectile damage to aircraft, destroy projectile
 			aircraft.damage(projectile.getDamage());
+			
+			if (projectile.isEnergyBall())
+				projectile.split();
+
 			projectile.destroy();
 		}
 	}
@@ -223,7 +244,7 @@ void Level1::buildScene()
 	mSceneLayers[Background]->attachChild(std::move(backgroundSprite));
 
 	// Add player's aircraft
-	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, mTextures, mFonts));
+	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, mTextures, mFonts, mWindow));
 	mPlayerAircraft = player.get();
 	mPlayerAircraft->setPosition(mSpawnPosition);
 	mSceneLayers[Air]->attachChild(std::move(player));
@@ -267,7 +288,7 @@ void Level1::spawnEnemies()
 	{
 		SpawnPoint spawn = mEnemySpawnPoints.back();
 		
-		std::unique_ptr<Aircraft> enemy(new Aircraft(spawn.type, mTextures, mFonts));
+		std::unique_ptr<Aircraft> enemy(new Aircraft(spawn.type, mTextures, mFonts, mWindow));
 		enemy->setPosition(spawn.x, spawn.y);
 		enemy->setRotation(180.f);
 

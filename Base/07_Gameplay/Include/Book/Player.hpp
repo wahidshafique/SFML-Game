@@ -7,7 +7,6 @@
 
 #include <map>
 
-
 class CommandQueue;
 
 class Player
@@ -19,10 +18,14 @@ class Player
 			MoveRight,
 			MoveUp,
 			MoveDown,
+
 			Fire,
 			LaunchMissile,
+			LaunchEnergy,
+			ActionCount,
+			
 			SeekTarget,
-			ActionCount
+			StopSeek			
 		};
 
 		enum MissionStatus
@@ -33,12 +36,6 @@ class Player
 			MissionWin
 		};
 
-		struct Seek
-		{
-			sf::Vector2f target;
-			sf::Vector2f direction;
-			bool isSeek;
-		};
 
 	public:
 								Player();
@@ -55,14 +52,15 @@ class Player
 		void 					setMissionStatus(MissionStatus status);
 		MissionStatus 			getMissionStatus() const;
 
+		bool					isMouse();
+		void					setMouse(bool b);
+
 	private:
 		void					initializeActions();
 		static bool				isRealtimeAction(Action action);
-		sf::Vector2f			getDirectionFromMousePosition();
-		bool					CanSeek();
 
 	private:
-		Seek									mSeek;								
+		bool									isMouseControlled;
 		std::map<sf::Keyboard::Key, Action>		mKeyBinding;
 		std::map<sf::Mouse::Button, Action>     mMouseBinding;
 		std::map<Action, Command>				mActionBinding;

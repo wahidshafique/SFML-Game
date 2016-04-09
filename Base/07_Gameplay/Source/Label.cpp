@@ -33,4 +33,9 @@ void Label::setText(const std::string& text)
 	mText.setString(text);
 }
 
+bool Label::checkWorldBounds()
+{
+	return false;
+}
+
 }

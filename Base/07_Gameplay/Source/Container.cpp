@@ -51,6 +51,19 @@ void Container::handleEvent(const sf::Event& event)
 				mChildren[mSelectedChild]->activate();
 		}
 	}
+	// if mouse button is clicked, and an item was selected,
+	// then activate the item (button, etc.)
+	else if (event.type == sf::Event::MouseButtonPressed)
+	{
+		if (event.mouseButton.button == sf::Mouse::Left)
+		{
+			if (selectMouse())
+			{
+				if (hasSelection())
+					mChildren[mSelectedChild]->activate();
+			}
+		}
+	}
 }
 
 void Container::draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -76,6 +89,37 @@ void Container::select(std::size_t index)
 		mChildren[index]->select();
 		mSelectedChild = index;
 	}
+}
+
+// returns true if item is selected,
+// using transform position
+bool Container::selectMouse()
+{
+	int index = 0;
+
+	// check mouse position against world bounds of each item
+	// and return true if found
+	FOREACH(const Component::Ptr& child, mChildren)
+	{		
+		if (child->checkWorldBounds())
+		{
+			if (mChildren[index]->isSelectable())
+			{
+				if (hasSelection())
+					mChildren[mSelectedChild]->deselect();
+
+				mChildren[index]->select();
+				mSelectedChild = index;				
+			}			
+
+			return true;
+
+		}
+		
+		index++;		
+	}
+
+	return false;
 }
 
 void Container::selectNext()
@@ -106,6 +150,11 @@ void Container::selectPrevious()
 
 	// Select that component
 	select(prev);
+}
+
+bool Container::checkWorldBounds()
+{
+	return false;
 }
 
 }

@@ -23,7 +23,7 @@ class Container : public Component
 
         virtual bool		isSelectable() const;
         virtual void		handleEvent(const sf::Event& event);
-
+		bool				checkWorldBounds();
 
     private:
         virtual void		draw(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -32,7 +32,7 @@ class Container : public Component
         void				select(std::size_t index);
         void				selectNext();
         void				selectPrevious();
-
+		bool				selectMouse();
 
     private:
         std::vector<Component::Ptr>		mChildren;

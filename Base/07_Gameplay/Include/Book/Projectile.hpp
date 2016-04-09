@@ -15,6 +15,8 @@ class Projectile : public Entity
 			AlliedBullet,
 			EnemyBullet,
 			Missile,
+			EnergyBall,
+			SmallEnergy,
 			TypeCount
 		};
 
@@ -24,6 +26,9 @@ class Projectile : public Entity
 
 		void					guideTowards(sf::Vector2f position);
 		bool					isGuided() const;
+
+		bool					isEnergyBall();
+		void					split();
 
 		virtual unsigned int	getCategory() const;
 		virtual sf::FloatRect	getBoundingRect() const;

@@ -7,6 +7,7 @@
 
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 
 #include <cmath>
 
@@ -16,7 +17,7 @@ namespace
 	const std::vector<AircraftData> Table = initializeAircraftData();
 }
 
-Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& fonts)
+Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& fonts, sf::RenderWindow& window)
 : Entity(Table[type].hitpoints)
 , mType(type)
 , mSprite(textures.get(Table[type].texture))
@@ -29,13 +30,22 @@ Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& f
 , mFireRateLevel(1)
 , mSpreadLevel(1)
 , mMissileAmmo(2)
+, mEnergy(20)
 , mDropPickupCommand()
 , mTravelledDistance(0.f)
 , mDirectionIndex(0)
 , mHealthDisplay(nullptr)
 , mMissileDisplay(nullptr)
+, mEnergyDisplay(nullptr)
+, mSeek()
+, mSeekRadius(20)
+, mWindow(window)
 {
 	centerOrigin(mSprite);
+
+	// initialize seek
+	mSeek.isSeek = false;
+	mSeek.target = sf::Vector2i();
 
 	mFireCommand.category = Category::SceneAirLayer;
 	mFireCommand.action   = [this, &textures] (SceneNode& node, sf::Time)
@@ -47,6 +57,12 @@ Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& f
 	mMissileCommand.action   = [this, &textures] (SceneNode& node, sf::Time)
 	{
 		createProjectile(node, Projectile::Missile, 0.f, 0.5f, textures);
+	};
+
+	mEnergyCommand.category = Category::SceneAirLayer;
+	mEnergyCommand.action = [this, &textures] (SceneNode& node, sf::Time)
+	{
+		createProjectile(node, Projectile::EnergyBall, 0.f, 0.5f, textures);
 	};
 
 	mDropPickupCommand.category = Category::SceneAirLayer;
@@ -65,6 +81,14 @@ Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& f
 		missileDisplay->setPosition(0, 70);
 		mMissileDisplay = missileDisplay.get();
 		attachChild(std::move(missileDisplay));
+	}
+
+	if (getCategory() == Category::PlayerAircraft)
+	{
+		std::unique_ptr<TextNode> energyDisplay(new TextNode(fonts, ""));
+		energyDisplay->setPosition(0, 90);
+		mEnergyDisplay = energyDisplay.get();
+		attachChild(std::move(energyDisplay));
 	}
 
 	updateTexts();
@@ -95,6 +119,46 @@ void Aircraft::updateCurrent(sf::Time dt, CommandQueue& commands)
 
 	// Update texts
 	updateTexts();
+}
+
+void Aircraft::setSeek()
+{
+	mSeek.isSeek = true;
+	mSeek.target = sf::Mouse::getPosition(mWindow);
+}
+
+void Aircraft::seekTarget(sf::Vector2f pos, sf::Vector2f targetPos)
+{	
+	if (checkSeekBounds(pos, targetPos))
+	{
+		stopSeek();
+	}
+}
+
+void Aircraft::stopSeek()
+{	
+	mSeek.target = sf::Vector2i();
+	mSeek.isSeek = false;
+}
+
+bool Aircraft::isSeek() const
+{
+	return mSeek.isSeek;
+}
+
+bool Aircraft::checkSeekBounds(sf::Vector2f pos, sf::Vector2f targetPos) const
+{
+	sf::FloatRect bounds = sf::FloatRect(targetPos.x-mSeekRadius/2, targetPos.y, mSeekRadius, mSeekRadius);
+
+	if (bounds.contains(pos))
+		return true;
+
+	return false;
+}
+
+sf::Vector2i Aircraft::getTarget() const
+{
+	return mSeek.target;
 }
 
 unsigned int Aircraft::getCategory() const
@@ -142,6 +206,11 @@ void Aircraft::collectMissiles(unsigned int count)
 	mMissileAmmo += count;
 }
 
+void Aircraft::collectEnergy(unsigned int count)
+{
+	mEnergy += count;
+}
+
 void Aircraft::fire()
 {
 	// Only ships with fire interval != 0 are able to fire
@@ -155,6 +224,15 @@ void Aircraft::launchMissile()
 	{
 		mIsLaunchingMissile = true;
 		--mMissileAmmo;
+	}
+}
+
+void Aircraft::launchEnergy()
+{
+	if (mEnergy > 0)
+	{
+		mIsLaunchingEnergy = true;
+		--mEnergy;
 	}
 }
 
@@ -214,6 +292,13 @@ void Aircraft::checkProjectileLaunch(sf::Time dt, CommandQueue& commands)
 	{
 		commands.push(mMissileCommand);
 		mIsLaunchingMissile = false;
+	}
+
+	// Check for energy launch
+	if (mIsLaunchingEnergy)
+	{
+		commands.push(mEnergyCommand);
+		mIsLaunchingEnergy = false;
 	}
 }
 
@@ -275,5 +360,12 @@ void Aircraft::updateTexts()
 			mMissileDisplay->setString("");
 		else
 			mMissileDisplay->setString("M: " + toString(mMissileAmmo));
+	}
+	if (mEnergyDisplay)
+	{
+		if (mEnergy == 0)
+			mEnergyDisplay->setString("");
+		else
+			mEnergyDisplay->setString("E: " + toString(mEnergy));
 	}
 }

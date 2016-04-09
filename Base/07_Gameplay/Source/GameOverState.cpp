@@ -7,7 +7,6 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/View.hpp>
 
-
 GameOverState::GameOverState(StateStack& stack, Context context)
 : State(stack, context)
 , mGameOverText()
@@ -21,7 +20,10 @@ GameOverState::GameOverState(StateStack& stack, Context context)
 	if (mStatus == Player::MissionFailure)
 		mGameOverText.setString("Mission failed!");	
 	else if (mStatus == Player::MissionSuccess)
+	{
 		mGameOverText.setString("Mission successful!");
+		context.player->setMissionStatus(Player::MissionRunning);
+	}
 	else
 		mGameOverText.setString("You win!");
 

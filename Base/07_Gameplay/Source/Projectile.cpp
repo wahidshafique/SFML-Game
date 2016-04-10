@@ -39,10 +39,9 @@ bool Projectile::isEnergyBall()
 {
 	return mType == EnergyBall;
 }
-#include <iostream>
 void Projectile::split()
 {
-	std::cout << "Split" << std::endl;
+	printf("Split \n");
 }
 
 void Projectile::updateCurrent(sf::Time dt, CommandQueue& commands)

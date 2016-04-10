@@ -18,28 +18,28 @@ namespace
 }
 
 Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& fonts, sf::RenderWindow& window)
-: Entity(Table[type].hitpoints)
-, mType(type)
-, mSprite(textures.get(Table[type].texture))
-, mFireCommand()
-, mMissileCommand()
-, mFireCountdown(sf::Time::Zero)
-, mIsFiring(false)
-, mIsLaunchingMissile(false)
-, mIsMarkedForRemoval(false)
-, mFireRateLevel(1)
-, mSpreadLevel(1)
-, mMissileAmmo(2)
-, mEnergy(20)
-, mDropPickupCommand()
-, mTravelledDistance(0.f)
-, mDirectionIndex(0)
-, mHealthDisplay(nullptr)
-, mMissileDisplay(nullptr)
-, mEnergyDisplay(nullptr)
-, mSeek()
-, mSeekRadius(20)
-, mWindow(window)
+	: Entity(Table[type].hitpoints)
+	, mType(type)
+	, mSprite(textures.get(Table[type].texture))
+	, mFireCommand()
+	, mMissileCommand()
+	, mFireCountdown(sf::Time::Zero)
+	, mIsFiring(false)
+	, mIsLaunchingMissile(false)
+	, mIsMarkedForRemoval(false)
+	, mFireRateLevel(1)
+	, mSpreadLevel(1)
+	, mMissileAmmo(2)
+	, mEnergy(20)
+	, mDropPickupCommand()
+	, mTravelledDistance(0.f)
+	, mDirectionIndex(0)
+	, mHealthDisplay(nullptr)
+	, mMissileDisplay(nullptr)
+	, mEnergyDisplay(nullptr)
+	, mSeek()
+	, mSeekRadius(20)
+	, mWindow(window)
 {
 	centerOrigin(mSprite);
 
@@ -48,25 +48,25 @@ Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& f
 	mSeek.target = sf::Vector2i();
 
 	mFireCommand.category = Category::SceneAirLayer;
-	mFireCommand.action   = [this, &textures] (SceneNode& node, sf::Time)
+	mFireCommand.action = [this, &textures](SceneNode& node, sf::Time)
 	{
 		createBullets(node, textures);
 	};
 
 	mMissileCommand.category = Category::SceneAirLayer;
-	mMissileCommand.action   = [this, &textures] (SceneNode& node, sf::Time)
+	mMissileCommand.action = [this, &textures](SceneNode& node, sf::Time)
 	{
 		createProjectile(node, Projectile::Missile, 0.f, 0.5f, textures);
 	};
 
 	mEnergyCommand.category = Category::SceneAirLayer;
-	mEnergyCommand.action = [this, &textures] (SceneNode& node, sf::Time)
+	mEnergyCommand.action = [this, &textures](SceneNode& node, sf::Time)
 	{
 		createProjectile(node, Projectile::EnergyBall, 0.f, 0.5f, textures);
 	};
 
 	mDropPickupCommand.category = Category::SceneAirLayer;
-	mDropPickupCommand.action   = [this, &textures] (SceneNode& node, sf::Time)
+	mDropPickupCommand.action = [this, &textures](SceneNode& node, sf::Time)
 	{
 		createPickup(node, textures);
 	};
@@ -128,7 +128,7 @@ void Aircraft::setSeek()
 }
 
 void Aircraft::seekTarget(sf::Vector2f pos, sf::Vector2f targetPos)
-{	
+{
 	if (checkSeekBounds(pos, targetPos))
 	{
 		stopSeek();
@@ -136,7 +136,7 @@ void Aircraft::seekTarget(sf::Vector2f pos, sf::Vector2f targetPos)
 }
 
 void Aircraft::stopSeek()
-{	
+{
 	mSeek.target = sf::Vector2i();
 	mSeek.isSeek = false;
 }
@@ -148,7 +148,7 @@ bool Aircraft::isSeek() const
 
 bool Aircraft::checkSeekBounds(sf::Vector2f pos, sf::Vector2f targetPos) const
 {
-	sf::FloatRect bounds = sf::FloatRect(targetPos.x-mSeekRadius/2, targetPos.y, mSeekRadius, mSeekRadius);
+	sf::FloatRect bounds = sf::FloatRect(targetPos.x - mSeekRadius / 2, targetPos.y, mSeekRadius, mSeekRadius);
 
 	if (bounds.contains(pos))
 		return true;
@@ -236,6 +236,21 @@ void Aircraft::launchEnergy()
 	}
 }
 
+void Aircraft::moveToStick() {
+	printf("MOVING TO STICK LOCATION \n");
+	sf::Vector2f moveSpeed(sf::Joystick::getAxisPosition(0, sf::Joystick::X),
+		sf::Joystick::getAxisPosition(0, sf::Joystick::Y));
+	if (moveSpeed.x > 0) {
+		printf("right");
+	} else if (moveSpeed.x < 0) {
+		printf("left");
+	} else if (moveSpeed.y < 0) {
+		printf("up");
+	} else if (moveSpeed.y > 0) {
+		printf("down");
+	}
+}
+
 void Aircraft::updateMovementPattern(sf::Time dt)
 {
 	// Enemy airplane: Movement pattern
@@ -279,8 +294,7 @@ void Aircraft::checkProjectileLaunch(sf::Time dt, CommandQueue& commands)
 		commands.push(mFireCommand);
 		mFireCountdown += Table[mType].fireInterval / (mFireRateLevel + 1.f);
 		mIsFiring = false;
-	}
-	else if (mFireCountdown > sf::Time::Zero)
+	} else if (mFireCountdown > sf::Time::Zero)
 	{
 		// Interval not expired: Decrease it further
 		mFireCountdown -= dt;
@@ -308,20 +322,20 @@ void Aircraft::createBullets(SceneNode& node, const TextureHolder& textures) con
 
 	switch (mSpreadLevel)
 	{
-		case 1:
-			createProjectile(node, type, 0.0f, 0.5f, textures);
-			break;
+	case 1:
+		createProjectile(node, type, 0.0f, 0.5f, textures);
+		break;
 
-		case 2:
-			createProjectile(node, type, -0.33f, 0.33f, textures);
-			createProjectile(node, type, +0.33f, 0.33f, textures);
-			break;
+	case 2:
+		createProjectile(node, type, -0.33f, 0.33f, textures);
+		createProjectile(node, type, +0.33f, 0.33f, textures);
+		break;
 
-		case 3:
-			createProjectile(node, type, -0.5f, 0.33f, textures);
-			createProjectile(node, type,  0.0f, 0.5f, textures);
-			createProjectile(node, type, +0.5f, 0.33f, textures);
-			break;
+	case 3:
+		createProjectile(node, type, -0.5f, 0.33f, textures);
+		createProjectile(node, type, 0.0f, 0.5f, textures);
+		createProjectile(node, type, +0.5f, 0.33f, textures);
+		break;
 	}
 }
 

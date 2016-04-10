@@ -7,6 +7,7 @@
 #include <Book/Projectile.hpp>
 #include <Book/TextNode.hpp>
 #include <SFML/Window/Mouse.hpp>
+#include <SFML\Window\Event.hpp>
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/View.hpp>
@@ -57,6 +58,8 @@ class Aircraft : public Entity
 		bool					isSeek() const;
 		bool					checkSeekBounds(sf::Vector2f pos, sf::Vector2f targetPos) const;
 		sf::Vector2i			getTarget() const;
+
+		void					moveToStick();
 
 	private:
 		virtual void			drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;

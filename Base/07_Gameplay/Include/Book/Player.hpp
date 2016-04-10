@@ -25,7 +25,9 @@ class Player
 			ActionCount,
 			
 			SeekTarget,
-			StopSeek			
+			StopSeek,	
+
+			MoveStick
 		};
 
 		enum MissionStatus
@@ -63,6 +65,7 @@ class Player
 		bool									isMouseControlled;
 		std::map<sf::Keyboard::Key, Action>		mKeyBinding;
 		std::map<sf::Mouse::Button, Action>     mMouseBinding;
+		std::map<sf::Joystick::Axis, Action>	mJoystickBinding;
 		std::map<Action, Command>				mActionBinding;
 		MissionStatus 							mCurrentMissionStatus;
 };

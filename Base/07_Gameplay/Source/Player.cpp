@@ -12,12 +12,12 @@ using namespace std::placeholders;
 struct AircraftMover
 {
 	AircraftMover(float vx, float vy)
-	: velocity(vx, vy)
+		: velocity(vx, vy)
 	{
 	}
 
 	AircraftMover(sf::Vector2f dir)
-	: velocity(dir)
+		: velocity(dir)
 	{
 	}
 
@@ -30,9 +30,13 @@ struct AircraftMover
 };
 
 Player::Player()
-: mCurrentMissionStatus(MissionRunning)
-, isMouseControlled(false)
+	: mCurrentMissionStatus(MissionRunning)
+	, isMouseControlled(false)
 {
+	//set init joystick bindings
+	if (sf::Joystick::isConnected(0)) {
+		printf("JOYSTICK 1 IS CONNECTED");
+	}
 	// Set initial key bindings
 	mKeyBinding[sf::Keyboard::Left] = MoveLeft;
 	mKeyBinding[sf::Keyboard::Right] = MoveRight;
@@ -42,15 +46,17 @@ Player::Player()
 	mKeyBinding[sf::Keyboard::M] = LaunchMissile;
 	mKeyBinding[sf::Keyboard::E] = LaunchEnergy;
 	mMouseBinding[sf::Mouse::Left] = SeekTarget;
+	mJoystickBinding[sf::Joystick::Axis::X] = MoveStick;
+	mJoystickBinding[sf::Joystick::Axis::Y] = MoveStick;
 
 	// Set initial action bindings
-	initializeActions();	
+	initializeActions();
 
 	// Assign all categories to player's aircraft
 	FOREACH(auto& pair, mActionBinding)
 		pair.second.category = Category::PlayerAircraft;
 }
-
+#include <iostream>
 void Player::handleEvent(const sf::Event& event, CommandQueue& commands)
 {
 	if (event.type == sf::Event::KeyPressed)
@@ -63,9 +69,21 @@ void Player::handleEvent(const sf::Event& event, CommandQueue& commands)
 		}
 	}
 	if (event.type == sf::Event::MouseButtonPressed && isMouse())
-	{		
+	{
+		printf("mouse has been pressed \m");
 		auto found = mMouseBinding.find(event.mouseButton.button);
 		if (found != mMouseBinding.end() && isRealtimeAction(found->second))
+		{
+			commands.push(mActionBinding[found->second]);
+		}
+	}
+	const float epsilon = 5;
+	if (event.type == sf::Event::JoystickMoved && (event.joystickMove.position > epsilon || event.joystickMove.position < -epsilon)) {
+		printf("joystick has moved \n");
+		std::cout << event.joystickMove.position << std::endl;
+		auto found = mJoystickBinding.find(event.joystickMove.axis);
+
+		if (found != mJoystickBinding.end() && isRealtimeAction(found->second))
 		{
 			commands.push(mActionBinding[found->second]);
 		}
@@ -83,10 +101,10 @@ void Player::handleRealtimeInput(CommandQueue& commands)
 			if (!isMouse())
 				commands.push(mActionBinding[pair.second]);
 			else if (isMouse() && pair.second != MoveLeft &&
-					pair.second != MoveRight && pair.second != MoveUp &&
-					pair.second != MoveDown)
+				pair.second != MoveRight && pair.second != MoveUp &&
+				pair.second != MoveDown)
 				commands.push(mActionBinding[pair.second]);
-		}		
+		}
 	}
 }
 
@@ -164,31 +182,33 @@ Player::MissionStatus Player::getMissionStatus() const
 
 void Player::initializeActions()
 {
-	mActionBinding[MoveLeft].action      = derivedAction<Aircraft>(AircraftMover(-1,  0));
-	mActionBinding[MoveRight].action     = derivedAction<Aircraft>(AircraftMover(+1,  0));
-	mActionBinding[MoveUp].action        = derivedAction<Aircraft>(AircraftMover( 0, -1));
-	mActionBinding[MoveDown].action      = derivedAction<Aircraft>(AircraftMover( 0, +1));
-	mActionBinding[SeekTarget].action	 = derivedAction<Aircraft>([] (Aircraft& a, sf::Time){ a.setSeek(); });
-	mActionBinding[StopSeek].action		 = derivedAction<Aircraft>([] (Aircraft& a, sf::Time){ a.stopSeek(); });
-	mActionBinding[Fire].action          = derivedAction<Aircraft>([] (Aircraft& a, sf::Time){ a.fire(); });
-	mActionBinding[LaunchMissile].action = derivedAction<Aircraft>([] (Aircraft& a, sf::Time){ a.launchMissile(); });
-	mActionBinding[LaunchEnergy].action  = derivedAction<Aircraft>([] (Aircraft& a, sf::Time){ a.launchEnergy(); });
+	mActionBinding[MoveLeft].action = derivedAction<Aircraft>(AircraftMover(-1, 0));
+	mActionBinding[MoveRight].action = derivedAction<Aircraft>(AircraftMover(+1, 0));
+	mActionBinding[MoveUp].action = derivedAction<Aircraft>(AircraftMover(0, -1));
+	mActionBinding[MoveDown].action = derivedAction<Aircraft>(AircraftMover(0, +1));
+	mActionBinding[SeekTarget].action = derivedAction<Aircraft>([](Aircraft& a, sf::Time) { a.setSeek(); });
+	mActionBinding[StopSeek].action = derivedAction<Aircraft>([](Aircraft& a, sf::Time) { a.stopSeek(); });
+	mActionBinding[Fire].action = derivedAction<Aircraft>([](Aircraft& a, sf::Time) { a.fire(); });
+	mActionBinding[LaunchMissile].action = derivedAction<Aircraft>([](Aircraft& a, sf::Time) { a.launchMissile(); });
+	mActionBinding[LaunchEnergy].action = derivedAction<Aircraft>([](Aircraft& a, sf::Time) { a.launchEnergy(); });
+	mActionBinding[MoveStick].action = derivedAction<Aircraft>([](Aircraft& a, sf::Time) { a.moveToStick(); });
 }
 
 bool Player::isRealtimeAction(Action action)
 {
 	switch (action)
 	{
-		case MoveLeft:
-		case MoveRight:
-		case MoveDown:
-		case MoveUp:
-		case Fire:
-		case SeekTarget:
-		case StopSeek:
-			return true;
+	case MoveLeft:
+	case MoveRight:
+	case MoveDown:
+	case MoveUp:
+	case Fire:
+	case SeekTarget:
+	case StopSeek:
+	case MoveStick:
+		return true;
 
-		default:
-			return false;
+	default:
+		return false;
 	}
 }

@@ -35,7 +35,7 @@ class Aircraft : public Entity
 		};
 
 	public:
-								Aircraft(Type type, const TextureHolder& textures, const FontHolder& fonts, sf::RenderWindow& window);
+								Aircraft(Type type, const TextureHolder& textures, const FontHolder& fonts, sf::RenderWindow& window, unsigned int difficulty);
 
 		virtual unsigned int	getCategory() const;
 		virtual sf::FloatRect	getBoundingRect() const;
@@ -91,6 +91,7 @@ class Aircraft : public Entity
 		bool 					mIsMarkedForRemoval;
 		bool					mPlayedExplosionSound;
 		
+		int						mDifficulty;
 		int						mFireRateLevel;
 		int						mSpreadLevel;
 		int						mMissileAmmo;

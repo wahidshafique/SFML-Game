@@ -25,7 +25,8 @@ Level2::Level2(sf::RenderWindow& window, FontHolder& fonts, SoundPlayer& sounds)
 , mPlayerAircraft(nullptr)
 , mEnemySpawnPoints()
 , mActiveEnemies()
-, enemyCount(10)
+, enemyCount(20)
+, difficulty(2)
 {
 	loadTextures();
 	
@@ -258,7 +259,7 @@ void Level2::buildScene()
 	mSceneGraph.attachChild(std::move(soundNode));
 	
 	// Add player's aircraft
-	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, mTextures, mFonts, mWindow));
+	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, mTextures, mFonts, mWindow, 0));
 	mPlayerAircraft = player.get();
 	mPlayerAircraft->setPosition(mSpawnPosition);
 	mSceneLayers[Air]->attachChild(std::move(player));
@@ -311,7 +312,7 @@ void Level2::spawnEnemies()
 	{
 		SpawnPoint spawn = mEnemySpawnPoints.back();
 		
-		std::unique_ptr<Aircraft> enemy(new Aircraft(spawn.type, mTextures, mFonts, mWindow));
+		std::unique_ptr<Aircraft> enemy(new Aircraft(spawn.type, mTextures, mFonts, mWindow, difficulty));
 		enemy->setPosition(spawn.x, spawn.y);
 		enemy->setRotation(180.f);
 

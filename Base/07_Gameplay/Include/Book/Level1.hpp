@@ -100,6 +100,7 @@ class Level1 : private sf::NonCopyable
 
 		std::vector<SpawnPoint>				mEnemySpawnPoints;
 		std::vector<Aircraft*>				mActiveEnemies;
+		int									difficulty;
 };
 
 #endif // BOOK_WORLD_HPP

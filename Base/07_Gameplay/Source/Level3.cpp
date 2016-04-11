@@ -21,10 +21,12 @@ Level3::Level3(sf::RenderWindow& window, FontHolder& fonts, SoundPlayer& sounds)
 , mSceneLayers()
 , mWorldBounds(0.f, 0.f, mWorldView.getSize().x, 2000.f)
 , mSpawnPosition(mWorldView.getSize().x / 2.f, mWorldBounds.height - mWorldView.getSize().y / 2.f)
-, mScrollSpeed(-250.f)
+, mScrollSpeed(-50.f)
 , mPlayerAircraft(nullptr)
 , mEnemySpawnPoints()
 , mActiveEnemies()
+, enemyCount(40)
+, difficulty(3)
 {
 	loadTextures();
 	
@@ -257,7 +259,7 @@ void Level3::buildScene()
 	mSceneGraph.attachChild(std::move(soundNode));
 	
 	// Add player's aircraft
-	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, mTextures, mFonts, mWindow));
+	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, mTextures, mFonts, mWindow, 0));
 	mPlayerAircraft = player.get();
 	mPlayerAircraft->setPosition(mSpawnPosition);
 	mSceneLayers[Air]->attachChild(std::move(player));
@@ -269,14 +271,26 @@ void Level3::buildScene()
 void Level3::addEnemies()
 {
 	// Add enemies to the spawn point container
-	addEnemy(Aircraft::Raptor,    0.f,  500.f);
-	addEnemy(Aircraft::Raptor,    0.f, 1000.f);
-	addEnemy(Aircraft::Raptor, +100.f, 1100.f);
-	addEnemy(Aircraft::Raptor, -100.f, 1100.f);
-	addEnemy(Aircraft::Avenger, -70.f, 1400.f);
-	addEnemy(Aircraft::Avenger, -70.f, 1600.f);
-	addEnemy(Aircraft::Avenger,  70.f, 1400.f);
-	addEnemy(Aircraft::Avenger,  70.f, 1600.f);
+	srand(time(NULL));
+	Aircraft::Type type = Aircraft::Raptor;
+
+	while(enemyCount)
+	{
+		int x = rand() * 450 / (RAND_MAX + 1.0);
+		if (static_cast<int>(rand() * 2 / (RAND_MAX + 1.0)) == 0)
+			x *= -1;
+
+		int y = (rand() * 1700 / (RAND_MAX + 1.0)) + 500;
+
+		if (static_cast<int>(rand() * 2 / (RAND_MAX +1.0)) == 1)
+			type = Aircraft::Avenger;
+		else
+			type = Aircraft::Raptor;
+
+		addEnemy(type, x, y);
+
+		enemyCount--;
+	}
 
 	// Sort all enemies according to their y value, such that lower enemies are checked first for spawning
 	std::sort(mEnemySpawnPoints.begin(), mEnemySpawnPoints.end(), [] (SpawnPoint lhs, SpawnPoint rhs)
@@ -299,7 +313,7 @@ void Level3::spawnEnemies()
 	{
 		SpawnPoint spawn = mEnemySpawnPoints.back();
 		
-		std::unique_ptr<Aircraft> enemy(new Aircraft(spawn.type, mTextures, mFonts, mWindow));
+		std::unique_ptr<Aircraft> enemy(new Aircraft(spawn.type, mTextures, mFonts, mWindow, difficulty));
 		enemy->setPosition(spawn.x, spawn.y);
 		enemy->setRotation(180.f);
 

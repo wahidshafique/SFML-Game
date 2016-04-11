@@ -18,7 +18,7 @@ namespace
 	const std::vector<AircraftData> Table = initializeAircraftData();
 }
 
-Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& fonts, sf::RenderWindow& window)
+Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& fonts, sf::RenderWindow& window, unsigned int difficulty)
 	: Entity(Table[type].hitpoints)
 	, mType(type)
 	, mSprite(textures.get(Table[type].texture))
@@ -42,6 +42,7 @@ Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& f
 	, mSeek()
 	, mSeekRadius(20)
 	, mWindow(window)
+	, mDifficulty(difficulty)
 {
 	centerOrigin(mSprite);
 
@@ -197,7 +198,7 @@ bool Aircraft::isAllied() const
 
 float Aircraft::getMaxSpeed() const
 {
-	return Table[mType].speed;
+	return Table[mType].speed + (mDifficulty*100);
 }
 
 void Aircraft::increaseFireRate()

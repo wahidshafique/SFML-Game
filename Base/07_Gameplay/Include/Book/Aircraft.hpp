@@ -52,6 +52,8 @@ class Aircraft : public Entity
 		void					launchMissile();
 		void					launchEnergy();
 		
+		void					playLocalSound(CommandQueue& commands, SoundEffect::ID effect);
+		
 		void					setSeek();
 		void					seekTarget(sf::Vector2f pos, sf::Vector2f targetPos);
 		void					stopSeek();
@@ -87,7 +89,8 @@ class Aircraft : public Entity
 		bool					mIsLaunchingMissile;
 		bool					mIsLaunchingEnergy;
 		bool 					mIsMarkedForRemoval;
-
+		bool					mPlayedExplosionSound;
+		
 		int						mFireRateLevel;
 		int						mSpreadLevel;
 		int						mMissileAmmo;

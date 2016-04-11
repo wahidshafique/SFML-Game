@@ -4,13 +4,16 @@
 GameState::GameState(StateStack& stack, Context context)
 : State(stack, context)
 , mPlayer(*context.player)
-, level1(*context.window, *context.fonts, *context.player)
-, level2(*context.window, *context.fonts)
-, level3(*context.window, *context.fonts)
+, level1(*context.window, *context.fonts, *context.player, *context.sounds)
+, level2(*context.window, *context.fonts, *context.sounds)
+, level3(*context.window, *context.fonts, *context.sounds)
 , level(CurrentLevel::LVL_1)
 {
 	level1.initialize();
 	mPlayer.setMissionStatus(Player::MissionRunning);
+	
+	// Play game theme
+	
 }
 
 void GameState::draw()

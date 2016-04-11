@@ -3,6 +3,7 @@
 #include <Book/Pickup.hpp>
 #include <Book/Foreach.hpp>
 #include <Book/TextNode.hpp>
+#include <Book/SoundNode.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 
 #include <algorithm>
@@ -10,10 +11,11 @@
 #include <limits>
 
 
-Level2::Level2(sf::RenderWindow& window, FontHolder& fonts)
+Level2::Level2(sf::RenderWindow& window, FontHolder& fonts, SoundPlayer& sounds)
 : mWindow(window)
 , mWorldView(window.getDefaultView())
 , mFonts(fonts)
+, mSounds(sounds)
 , mTextures() 
 , mSceneGraph()
 , mSceneLayers()
@@ -61,6 +63,8 @@ void Level2::update(sf::Time dt)
 	// Regular update step, adapt position (correct if outside view)
 	mSceneGraph.update(dt, mCommandQueue);
 	adaptPlayerPosition();
+	
+	updateSounds();
 }
 
 void Level2::draw()
@@ -188,6 +192,8 @@ void Level2::handleCollisions()
 			// Collision: Player damage = enemy's remaining HP
 			player.damage(enemy.getHitpoints());
 			enemy.destroy();
+			
+			enemy.playLocalSound(mCommandQueue, SoundEffect::Explosion1);
 		}
 
 		else if (matchesCategories(pair, Category::PlayerAircraft, Category::Pickup))
@@ -198,6 +204,8 @@ void Level2::handleCollisions()
 			// Apply pickup effect to player, destroy projectile
 			pickup.apply(player);
 			pickup.destroy();
+			
+			player.playLocalSound(mCommandQueue, SoundEffect::CollectPickup);
 		}
 
 		else if (matchesCategories(pair, Category::EnemyAircraft, Category::AlliedProjectile)
@@ -211,6 +219,15 @@ void Level2::handleCollisions()
 			projectile.destroy();
 		}
 	}
+}
+
+void Level2::updateSounds()
+{
+	// Set listener's position to player position
+	mSounds.setListenerPosition(mPlayerAircraft->getWorldPosition());
+
+	// Remove unused sounds
+	mSounds.removeStoppedSounds();
 }
 
 void Level2::buildScene()
@@ -236,6 +253,10 @@ void Level2::buildScene()
 	backgroundSprite->setPosition(mWorldBounds.left, mWorldBounds.top);
 	mSceneLayers[Background]->attachChild(std::move(backgroundSprite));
 
+	// Add sound effect node
+	std::unique_ptr<SoundNode> soundNode(new SoundNode(mSounds));
+	mSceneGraph.attachChild(std::move(soundNode));
+	
 	// Add player's aircraft
 	std::unique_ptr<Aircraft> player(new Aircraft(Aircraft::Eagle, mTextures, mFonts, mWindow));
 	mPlayerAircraft = player.get();

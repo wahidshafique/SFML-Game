@@ -11,7 +11,7 @@ SettingsState::SettingsState(StateStack& stack, Context context)
 	mBackgroundSprite.setTexture(context.textures->get(Textures::TitleScreen));	
 
 	// Build button for changing controls between mouse and keyboard movement
-	mChangeControlButton = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *context.window);
+	mChangeControlButton = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *context.window, context);
 	mChangeControlButton->setPosition(80.f, 250.f);
 	if (context.player->isMouse())
 		mChangeControlButton->setText("Keyboard Controls");
@@ -43,7 +43,7 @@ SettingsState::SettingsState(StateStack& stack, Context context)
 
 	updateLabels();	
 
-	auto backButton = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *context.window);
+	auto backButton = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *context.window, context);
 	backButton->setPosition(420.f, 650.f);
 	backButton->setText("Back");
 	backButton->setCallback(std::bind(&SettingsState::requestStackPop, this));	
@@ -96,7 +96,8 @@ void SettingsState::hideControlButtons(bool flag)
 {
 	for (int i = 0; i < mBindingButtons.size(); i++)
 	{
-		if (i != Player::Fire && i != Player::LaunchMissile)
+		if (i != Player::Fire && i != Player::LaunchMissile &&
+			i != Player::LaunchEnergy)
 			mBindingButtons[i]->setHide(flag);
 	}
 }
@@ -125,7 +126,7 @@ void SettingsState::updateLabels()
 
 void SettingsState::addButtonLabel(Player::Action action, float y, const std::string& text, Context context)
 {
-	mBindingButtons[action] = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *getContext().window);
+	mBindingButtons[action] = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *getContext().window, context);
 	mBindingButtons[action]->setPosition(80.f, y);
 	mBindingButtons[action]->setText(text);
 	mBindingButtons[action]->setToggle(true);

@@ -5,6 +5,7 @@
 #include <Book/Component.hpp>
 #include <Book/ResourceIdentifiers.hpp>
 #include <Book/ResourceHolder.hpp>
+#include <Book/State.hpp>
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
@@ -16,6 +17,7 @@
 #include <memory>
 #include <functional>
 
+class SoundPlayer;
 
 namespace GUI
 {
@@ -28,7 +30,7 @@ class Button : public Component
 
 
 	public:
-		Button(const FontHolder& fonts, const TextureHolder& textures, const sf::RenderWindow& window);
+		Button(const FontHolder& fonts, const TextureHolder& textures, const sf::RenderWindow& window, State::Context context);
 
         void					setCallback(Callback callback);
         void					setText(const std::string& text);
@@ -61,6 +63,7 @@ class Button : public Component
         sf::Text				mText;
         bool					mIsToggle;
 		bool					mIsHiding;
+		SoundPlayer&			mSounds;
 };
 
 }

@@ -8,6 +8,7 @@
 #include <Book/Aircraft.hpp>
 #include <Book/CommandQueue.hpp>
 #include <Book/Command.hpp>
+#include <Book/SoundPlayer.hpp>
 
 #include <SFML/System/NonCopyable.hpp>
 #include <SFML/Graphics/View.hpp>
@@ -26,7 +27,8 @@ namespace sf
 class Level2 : private sf::NonCopyable
 {
 	public:
-		explicit							Level2(sf::RenderWindow& window, FontHolder& fonts);
+		explicit							Level2(sf::RenderWindow& window, FontHolder& fonts,
+												SoundPlayer& sounds);
 		void								update(sf::Time dt);
 		void								draw();
 		
@@ -42,6 +44,7 @@ class Level2 : private sf::NonCopyable
 		void								adaptPlayerPosition();
 		void								adaptPlayerVelocity(float deltaTime);
 		void								handleCollisions();
+		void								updateSounds();
 		
 		void								buildScene();
 		void								addEnemies();
@@ -81,7 +84,8 @@ class Level2 : private sf::NonCopyable
 		sf::View							mWorldView;
 		TextureHolder						mTextures;
 		FontHolder&							mFonts;
-
+		SoundPlayer&						mSounds;
+		
 		SceneNode							mSceneGraph;
 		std::array<SceneNode*, LayerCount>	mSceneLayers;
 		CommandQueue						mCommandQueue;

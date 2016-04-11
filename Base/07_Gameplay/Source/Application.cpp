@@ -17,7 +17,9 @@ Application::Application()
 , mTextures()
 , mFonts()
 , mPlayer()
-, mStateStack(State::Context(mWindow, mTextures, mFonts, mPlayer))
+, mMusic()
+, mSounds()
+, mStateStack(State::Context(mWindow, mTextures, mFonts, mPlayer, mMusic, mSounds))
 , mStatisticsText()
 , mStatisticsUpdateTime()
 , mStatisticsNumFrames(0)
@@ -37,6 +39,8 @@ Application::Application()
 
 	registerStates();
 	mStateStack.pushState(States::Title);
+	
+	mMusic.setVolume(25.f);
 }
 
 void Application::run()

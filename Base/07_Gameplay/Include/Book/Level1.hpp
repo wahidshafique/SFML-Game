@@ -9,6 +9,7 @@
 #include <Book/CommandQueue.hpp>
 #include <Book/Command.hpp>
 #include <Book/Player.hpp>
+#include <Book/SoundPlayer.hpp>
 
 #include <SFML/System/NonCopyable.hpp>
 #include <SFML/Graphics/View.hpp>
@@ -28,7 +29,7 @@ class Level1 : private sf::NonCopyable
 {
 	public:
 		explicit							Level1(sf::RenderWindow& window, FontHolder& fonts,
-													Player& player);
+													Player& player, SoundPlayer& sounds);
 		void								update(sf::Time dt);
 		void								draw();
 		
@@ -44,6 +45,7 @@ class Level1 : private sf::NonCopyable
 		void								adaptPlayerPosition();
 		void								adaptPlayerVelocity(float deltaTime);
 		void								handleCollisions();
+		void								updateSounds();
 		
 		void								buildScene();
 		void								addEnemies();
@@ -84,7 +86,8 @@ class Level1 : private sf::NonCopyable
 		sf::View							mWorldView;
 		TextureHolder						mTextures;
 		FontHolder&							mFonts;
-
+		SoundPlayer&						mSounds;
+		
 		SceneNode							mSceneGraph;
 		std::array<SceneNode*, LayerCount>	mSceneLayers;
 		CommandQueue						mCommandQueue;

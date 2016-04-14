@@ -5,7 +5,9 @@
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Transformable.hpp>
 #include <SFML/Window/Mouse.hpp>
+#include <Book/Utility.hpp>
 
+#include <math.h>
 #include <memory>
 
 

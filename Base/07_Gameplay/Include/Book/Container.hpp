@@ -37,6 +37,8 @@ class Container : public Component
     private:
         std::vector<Component::Ptr>		mChildren;
         int								mSelectedChild;
+		bool							mIsStickMove;
+		float							mStickSensitivity;
 };
 
 }

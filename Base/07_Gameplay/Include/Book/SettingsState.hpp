@@ -25,6 +25,7 @@ class SettingsState : public State
 	private:
 		void							updateLabels();
 		void							addButtonLabel(Player::Action action, float y, const std::string& text, Context context);
+		void							addButtonLabel(Player::Action action, float x, float y, const std::string& text, Context context);
 		void							hideControlButtons(bool flag);
 		void							addControlButtons(Context& context);
 

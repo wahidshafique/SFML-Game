@@ -47,6 +47,7 @@ class Player
 
 		void					assignButton(Action action, sf::Mouse::Button button);
 		void					assignKey(Action action, sf::Keyboard::Key key);
+		void					assignJoystickButton(Action action, unsigned int button);
 		sf::Mouse::Button		getAssignedButton(Action action) const;
 		sf::Keyboard::Key		getAssignedKey(Action action) const;
 
@@ -66,6 +67,7 @@ class Player
 		std::map<sf::Keyboard::Key, Action>		mKeyBinding;
 		std::map<sf::Mouse::Button, Action>     mMouseBinding;
 		std::map<sf::Joystick::Axis, Action>	mJoystickBinding;
+		std::map<unsigned int, Action>			mControllerButtonBinding;
 		std::map<Action, Command>				mActionBinding;
 		MissionStatus 							mCurrentMissionStatus;
 };

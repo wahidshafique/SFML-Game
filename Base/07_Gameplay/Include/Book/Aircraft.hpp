@@ -62,6 +62,7 @@ class Aircraft : public Entity
 		sf::Vector2i			getTarget() const;
 
 		void					moveToStick();
+		bool					isStick();
 
 	private:
 		virtual void			drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const;
@@ -107,6 +108,9 @@ class Aircraft : public Entity
 		float					mSeekRadius;
 
 		sf::RenderWindow&		mWindow;
+
+		sf::Vector2f			mStickDirection;
+		float					mStickSensitivity;
 };
 
 #endif // BOOK_AIRCRAFT_HPP

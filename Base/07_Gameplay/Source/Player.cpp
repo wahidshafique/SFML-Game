@@ -46,6 +46,7 @@ Player::Player()
 	mKeyBinding[sf::Keyboard::M] = LaunchMissile;
 	mKeyBinding[sf::Keyboard::E] = LaunchEnergy;
 	mMouseBinding[sf::Mouse::Left] = SeekTarget;
+	mControllerButtonBinding[0] = Fire; // a button
 	mJoystickBinding[sf::Joystick::Axis::X] = MoveStick;
 	mJoystickBinding[sf::Joystick::Axis::Y] = MoveStick;
 
@@ -56,7 +57,7 @@ Player::Player()
 	FOREACH(auto& pair, mActionBinding)
 		pair.second.category = Category::PlayerAircraft;
 }
-#include <iostream>
+
 void Player::handleEvent(const sf::Event& event, CommandQueue& commands)
 {
 	if (event.type == sf::Event::KeyPressed)
@@ -70,21 +71,26 @@ void Player::handleEvent(const sf::Event& event, CommandQueue& commands)
 	}
 	if (event.type == sf::Event::MouseButtonPressed && isMouse())
 	{
-		printf("mouse has been pressed \m");
 		auto found = mMouseBinding.find(event.mouseButton.button);
 		if (found != mMouseBinding.end() && isRealtimeAction(found->second))
 		{
 			commands.push(mActionBinding[found->second]);
 		}
 	}
+	if (event.type == sf::Event::JoystickButtonPressed)
+	{
+		auto found = mControllerButtonBinding.find(event.joystickButton.button);
+		if (found != mControllerButtonBinding.end() && isRealtimeAction(found->second))
+		{
+			commands.push(mActionBinding[found->second]);
+		}
+	}
 	const float epsilon = 5;
 	if (event.type == sf::Event::JoystickMoved && (event.joystickMove.position > epsilon || event.joystickMove.position < -epsilon)) {
-		printf("joystick has moved \n");
-		std::cout << event.joystickMove.position << std::endl;
 		auto found = mJoystickBinding.find(event.joystickMove.axis);
 
 		if (found != mJoystickBinding.end() && isRealtimeAction(found->second))
-		{
+		{			
 			commands.push(mActionBinding[found->second]);
 		}
 	}
@@ -157,6 +163,21 @@ void Player::assignKey(Action action, sf::Keyboard::Key key)
 
 	// Insert new binding
 	mKeyBinding[key] = action;
+}
+
+void Player::assignJoystickButton(Action action, unsigned int button)
+{
+	// Remove all keys that already map to action
+	for (auto itr = mControllerButtonBinding.begin(); itr != mControllerButtonBinding.end(); )
+	{
+		if (itr->second == action)
+			mControllerButtonBinding.erase(itr++);
+		else
+			++itr;
+	}
+
+	// Insert new binding
+	mControllerButtonBinding[button] = action;
 }
 
 sf::Keyboard::Key Player::getAssignedKey(Action action) const

@@ -12,6 +12,8 @@ namespace GUI
 Container::Container()
 : mChildren()
 , mSelectedChild(-1)
+, mIsStickMove(false)
+, mStickSensitivity(0.25f)
 {
 }
 
@@ -30,7 +32,9 @@ bool Container::isSelectable() const
 
 void Container::handleEvent(const sf::Event& event)
 {
-    // If we have selected a child then give it events
+    float dirY = sf::Joystick::getAxisPosition(0, sf::Joystick::Y) / 100; // for the stick ( see bottom of function )
+	
+	// If we have selected a child then give it events
 	if (hasSelection() && mChildren[mSelectedChild]->isActive())
 	{
 		mChildren[mSelectedChild]->handleEvent(event);
@@ -64,6 +68,29 @@ void Container::handleEvent(const sf::Event& event)
 			}
 		}
 	}
+	// if mouse button is clicked, and an item was selected,
+	// then activate the item (button, etc.)
+	else if (event.type == sf::Event::JoystickMoved && !mIsStickMove)
+	{
+		if (abs(dirY) > mStickSensitivity)
+		{
+			if (dirY > 0)
+				selectNext();
+			else if (dirY < 0)
+				selectPrevious();
+
+			mIsStickMove = true;
+		}
+	}
+	else if (event.type == sf::Event::JoystickButtonPressed)
+	{
+		// 'a' button pressed
+		if (sf::Joystick::isButtonPressed(0, 0))
+			mChildren[mSelectedChild]->activate();
+	}
+
+	if (abs(dirY) <= mStickSensitivity)
+		mIsStickMove = false;
 }
 
 void Container::draw(sf::RenderTarget& target, sf::RenderStates states) const

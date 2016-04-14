@@ -79,6 +79,11 @@ bool SettingsState::handleEvent(const sf::Event& event)
 				getContext().player->assignKey(static_cast<Player::Action>(action), event.key.code);
 				mBindingButtons[action]->deactivate();
 			}
+			else if (event.type == sf::Event::JoystickButtonReleased)
+			{
+				getContext().player->assignJoystickButton(static_cast<Player::Action>(action), event.joystickButton.button);
+				mBindingButtons[action]->deactivate();
+			}
 			break;
 		}
 	}
@@ -110,7 +115,7 @@ void SettingsState::addControlButtons(Context& context)
 	addButtonLabel(Player::MoveDown,		450.f, "Move Down", context);
 	addButtonLabel(Player::Fire,			500.f, "Fire", context);
 	addButtonLabel(Player::LaunchMissile,	550.f, "Missile", context);
-	addButtonLabel(Player::LaunchEnergy,	600.f, "Energy", context);
+	addButtonLabel(Player::LaunchEnergy,	600.f, "Energy", context);	
 }
 
 void SettingsState::updateLabels()
@@ -133,6 +138,21 @@ void SettingsState::addButtonLabel(Player::Action action, float y, const std::st
 
 	mBindingLabels[action] = std::make_shared<GUI::Label>("", *context.fonts);
 	mBindingLabels[action]->setPosition(300.f, y + 15.f);
+
+	mGUIContainer.pack(mBindingButtons[action]);
+	mGUIContainer.pack(mBindingLabels[action]);
+}
+
+
+void SettingsState::addButtonLabel(Player::Action action, float x, float y, const std::string& text, Context context)
+{
+	mBindingButtons[action] = std::make_shared<GUI::Button>(*context.fonts, *context.textures, *getContext().window, context);
+	mBindingButtons[action]->setPosition(x, y);
+	mBindingButtons[action]->setText(text);
+	mBindingButtons[action]->setToggle(true);
+
+	mBindingLabels[action] = std::make_shared<GUI::Label>("", *context.fonts);
+	mBindingLabels[action]->setPosition(x + 300.f, y + 15.f);
 
 	mGUIContainer.pack(mBindingButtons[action]);
 	mGUIContainer.pack(mBindingLabels[action]);

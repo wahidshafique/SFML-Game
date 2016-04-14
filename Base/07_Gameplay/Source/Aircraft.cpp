@@ -43,6 +43,8 @@ Aircraft::Aircraft(Type type, const TextureHolder& textures, const FontHolder& f
 	, mSeekRadius(20)
 	, mWindow(window)
 	, mDifficulty(difficulty)
+	, mStickDirection()
+	, mStickSensitivity(0.1f)
 {
 	centerOrigin(mSprite);
 
@@ -120,6 +122,17 @@ void Aircraft::updateCurrent(sf::Time dt, CommandQueue& commands)
 		
 		mIsMarkedForRemoval = true;
 		return;
+	}
+
+	if (length(sf::Vector2f(sf::Joystick::getAxisPosition(0, sf::Joystick::X) / 100,
+							sf::Joystick::getAxisPosition(0, sf::Joystick::Y) / 100)) < mStickSensitivity)
+	{
+		mStickDirection = sf::Vector2f();
+	}
+
+	if (isStick())
+	{
+		accelerate(mStickDirection*getMaxSpeed());
 	}
 
 	// Check if bullets or missiles are fired
@@ -265,18 +278,30 @@ void Aircraft::playLocalSound(CommandQueue& commands, SoundEffect::ID effect)
 }
 
 void Aircraft::moveToStick() {
-	printf("MOVING TO STICK LOCATION \n");
-	sf::Vector2f moveSpeed(sf::Joystick::getAxisPosition(0, sf::Joystick::X),
-		sf::Joystick::getAxisPosition(0, sf::Joystick::Y));
-	if (moveSpeed.x > 0) {
+	//printf("MOVING TO STICK LOCATION \n");
+	mStickDirection = sf::Vector2f(sf::Joystick::getAxisPosition(0, sf::Joystick::X) / 100,
+		sf::Joystick::getAxisPosition(0, sf::Joystick::Y) / 100);
+
+	printf("%f, %f\n", mStickDirection.x, mStickDirection.y);
+
+	/*if (moveSpeed.x > 0) {
 		printf("right");
-	} else if (moveSpeed.x < 0) {
+	} if (moveSpeed.x < 0) {
 		printf("left");
-	} else if (moveSpeed.y < 0) {
+	} if (moveSpeed.y < 0) {
 		printf("up");
-	} else if (moveSpeed.y > 0) {
+	} if (moveSpeed.y > 0) {
 		printf("down");
-	}
+	}*/
+}
+
+bool Aircraft::isStick()
+{
+	printf("bam, %f\n", length(mStickDirection));
+	if (length(mStickDirection) > 0.5f)
+		return 1;
+
+	return 0;
 }
 
 void Aircraft::updateMovementPattern(sf::Time dt)
